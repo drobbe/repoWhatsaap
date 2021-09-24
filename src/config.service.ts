@@ -31,6 +31,14 @@ export class WhatsappConfigService {
     );
   }
 
+  get bot(): string {
+    return this.configService.get('BOT');
+  }
+
+  get flow(): string {
+    return this.configService.get('FLOW');
+  }
+
   get files_lifetime(): number {
     return this.configService.get<number>('WHATSAPP_FILES_LIFETIME', 180);
   }
