@@ -113,8 +113,9 @@ export class WhatsappService implements OnApplicationShutdown {
     this.socket.on('connect', () => {});
     // this.socket.on('message', data => console.log('data Mensagge', data));
 
-    this.socket.on('orcob_falabella', data => {
-      this._handelWebsocketMessage(data);
+    this.socket.on('orcob_falabella', (data: WebSocketMessage) => {
+      console.log(data);
+      this._handleWebsocketSimpleMessage(data);
     });
 
     this.socket.on('disconnect', () => {
@@ -165,6 +166,7 @@ export class WhatsappService implements OnApplicationShutdown {
   private async callWebhook(data: Message, url) {
     try {
       const idSender = data.sender.id;
+
       const formatPhone = this._splitPhone(idSender);
       let idChatWs = data.chatId;
 
@@ -181,6 +183,10 @@ export class WhatsappService implements OnApplicationShutdown {
         return;
       }
 
+      if (this.activeChats[chatIdInMemory].form.active === true) {
+        this.sendToSocketForm(chatIdInMemory, data);
+        return;
+      }
       this.sendToSocket(chatIdInMemory, data);
     } catch (error) {
       console.log(error);
@@ -203,6 +209,8 @@ export class WhatsappService implements OnApplicationShutdown {
       this.activeChats[chatIdInMemory].affirmation = false;
     }
     if (affirmation.destiny.showGoodbye) {
+      if (this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
+        return;
       await this.whatsapp
         .sendText(
           this.activeChats[chatIdInMemory].idSender,
@@ -215,6 +223,13 @@ export class WhatsappService implements OnApplicationShutdown {
           console.error('Error when sending: ', erro); //return object errormenu
         });
     }
+  }
+
+  cleanFormActiveChat(chatIdInMemory: number) {
+    this.activeChats[chatIdInMemory].form.active = false;
+    delete this.activeChats[chatIdInMemory].form.socket;
+    delete this.activeChats[chatIdInMemory].form.activeQuestion;
+    delete this.activeChats[chatIdInMemory].form.questions;
   }
 
   async sendToSocket(chatIdInMemory: number, message: Message) {
@@ -238,11 +253,73 @@ export class WhatsappService implements OnApplicationShutdown {
       message: branch.event,
     };
 
-    if (branch.type === 'form') {
-      socketMsg[branch.vars[0]] = message.body;
+    this.activeChats[chatIdInMemory].lastBranch = branch.id;
+
+    this.socket.emit(this.bot, socketMsg);
+  }
+
+  async sendToSocketForm(chatIdInMemory: number, message: Message) {
+    let date = new Date().toLocaleString();
+
+    let positionActiveQuestion = this.activeChats[chatIdInMemory].form
+      .activeQuestion;
+
+    this.activeChats[chatIdInMemory].form.questions[
+      positionActiveQuestion
+    ].value = message.body;
+
+    //si es el ulitmo mensaje del fomrulaio
+    if (
+      this.activeChats[chatIdInMemory].form.activeQuestion ===
+      this.activeChats[chatIdInMemory].form.questions.length - 1
+    ) {
+      console.log(this.activeChats[chatIdInMemory].lastBranch);
+      let branch = this.findBranchID(
+        this.activeChats[chatIdInMemory].lastBranch,
+        this.chatBot.branchs,
+      );
+
+      console.log(branch);
+
+      let socketMsg = {
+        chatOnline: {
+          id: null,
+          message: '',
+          time: date,
+        },
+        idChat: this.activeChats[chatIdInMemory].idChat,
+        idUsername: 2,
+        message: branch.form.message,
+      };
+
+      this.activeChats[chatIdInMemory].form.questions.forEach(q => {
+        socketMsg[q.parrameter] = q.value;
+      });
+
+      socketMsg['idUser'] = 2;
+
+      this.activeChats[chatIdInMemory].lastBranch = branch.id;
+
+      console.log(socketMsg);
+      console.log(branch.socket);
       this.socket.emit(branch.socket, socketMsg);
+      this.cleanFormActiveChat(chatIdInMemory);
     } else {
-      this.socket.emit(this.bot, socketMsg);
+      if (this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
+        return;
+      await this.whatsapp
+        .sendText(
+          this.activeChats[chatIdInMemory].idSender,
+          this.activeChats[chatIdInMemory].form.questions[
+            positionActiveQuestion + 1
+          ].message,
+        )
+        .then(result => {
+          console.log('Enviando siguiente formulario 🍔🍔'); //return object success
+        })
+        .catch(erro => {
+          console.error('Error when sending: ', erro); //return object errormenu
+        });
     }
   }
 
@@ -267,6 +344,8 @@ export class WhatsappService implements OnApplicationShutdown {
 
   async greetins(idChatInMemory: number) {
     for (const message of this.chatBot.greetings) {
+      if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+        return;
       await this.whatsapp
         .sendText(this.activeChats[idChatInMemory].idSender, message)
         .then(result => {
@@ -285,6 +364,8 @@ export class WhatsappService implements OnApplicationShutdown {
     let i = 0;
     for (const branch of this.menuBranch.branchs) {
       if (branch.enabled === true) {
+        if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+          return;
         await this.whatsapp
           .sendText(
             this.activeChats[idChatInMemory].idSender,
@@ -309,6 +390,8 @@ export class WhatsappService implements OnApplicationShutdown {
     const afirmationBranch = this.chatBot.affirmation;
     for (const branch of afirmationBranch) {
       if (branch.enabled === true) {
+        if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+          return;
         await this.whatsapp
           .sendText(
             this.activeChats[idChatInMemory].idSender,
@@ -349,6 +432,9 @@ export class WhatsappService implements OnApplicationShutdown {
       idSender: idSender,
       greetins: true,
       lastBranch: null,
+      form: {
+        active: false,
+      },
     };
 
     return this.activeChats.push(isRegister) - 1;
@@ -440,8 +526,12 @@ export class WhatsappService implements OnApplicationShutdown {
     );
   }
 
-  private _handelWebsocketMessage(data: WebSocketMessage) {
+  private _handleWebsocketSimpleMessage(data: WebSocketMessage) {
     const idChatInMemory = this.findIdChatByIdChat(data.idChat);
+    if (data.formConsulta === true) this.activeForm(idChatInMemory, data);
+
+    if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+      return;
     this.whatsapp
       .sendText(this.activeChats[idChatInMemory].idSender, data.message)
       .then(result => {
@@ -455,7 +545,27 @@ export class WhatsappService implements OnApplicationShutdown {
       });
   }
 
+  private activeForm(idChatInMemory: number, dataWebsocket: WebSocketMessage) {
+    this.activeChats[idChatInMemory].form = {
+      active: true,
+      questions: dataWebsocket.whatsapp.messages,
+      activeQuestion: 0,
+      socket: dataWebsocket.whatsapp.socket,
+    };
+  }
+
   findIdChatByIdChat(idChat: number): number {
     return this.activeChats.findIndex(c => (c.idChat = idChat));
+  }
+
+  async sendText(chatIdInMemory: number, text: string) {
+    return this.whatsapp
+      .sendText(this.activeChats[chatIdInMemory].idSender, text)
+      .then(result => {
+        console.log('Enviando siguiente formulario 🍔🍔'); //return object success
+      })
+      .catch(erro => {
+        console.error('Error when sending: ', erro); //return object errormenu
+      });
   }
 }

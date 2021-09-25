@@ -30,9 +30,9 @@
         {
           "id": 31,
           "text": "Deseas mayor informacion de su deuda",
-          "event": "consultar rut",
+          "event": "Deseas mayor informacion de su deuda",
           "socket": "consulta_falabella",
-          "vars": ["rutUser"],
+          "form": { "message": "consultar rut" },
           "enabled": true,
           "type": "form"
         },

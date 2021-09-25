@@ -7,7 +7,7 @@ export interface Branch {
   type?: string;
   event?: string | null;
   socket?: string;
-  vars?: any[];
+  form?: { message: string };
   destiny?: {
     going?: number;
     toMenu?: boolean;
