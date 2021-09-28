@@ -185,6 +185,7 @@ export class WhatsappService implements OnApplicationShutdown {
         this.sendToSocketForm(chatIdInMemory, data);
         return;
       }
+
       this.sendToSocket(chatIdInMemory, data);
     } catch (error) {
       console.log(error);
@@ -225,6 +226,11 @@ export class WhatsappService implements OnApplicationShutdown {
       };
 
       this.activeChats[chatIdInMemory].lastBranch = branch.id;
+
+      if (branch.type === 'chabot') {
+        this._activeChatWithAgent(chatIdInMemory);
+        return;
+      }
 
       this.socket.emit(this.bot, socketMsg);
     } catch (error) {
@@ -565,6 +571,24 @@ export class WhatsappService implements OnApplicationShutdown {
 
   private _splitPhone(whatsappId: string): string {
     return whatsappId.split('@')[0];
+  }
+
+  private _activeChatWithAgent(idChatInMemory: number) {
+    return instance
+      .post(`https://realtime.sinaptica.io/v1/sinaptica/asignedAsesor`, {
+        idEmpresa: this.userName,
+        idusername: this.userName,
+        idchat: this.activeChats[idChatInMemory].idChat,
+      })
+      .then(function(response) {
+        console.log('Enviindo Peticion');
+        console.log(response);
+      })
+      .catch(function(error) {
+        console.log('dsa');
+        console.log(error);
+        return error;
+      });
   }
 
   //Externo

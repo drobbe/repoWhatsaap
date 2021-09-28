@@ -54,10 +54,10 @@
         },
         {
           "id": 34,
-          "text": "No tengo deuda",
-          "event": "No tengo deuda",
-          "enabled": false,
-          "type": "message"
+          "text": "conectarse con un asesor",
+          "event": "conectarse con un asesor",
+          "enabled": true,
+          "type": "chabot"
         }
       ]
     }
