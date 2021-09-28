@@ -30,6 +30,7 @@
     "axios": "^0.21.4",
     "class-validator": "^0.12.2",
     "del": "^6.0.0",
+    "luxon": "^2.0.2",
     "mime-types": "^2.1.27",
     "reflect-metadata": "^0.1.13",
     "requestretry": "^4.1.1",

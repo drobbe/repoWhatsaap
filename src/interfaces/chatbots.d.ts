@@ -18,6 +18,7 @@ export interface Branch {
 
 export interface ChatBot {
   greetings: string[];
+  default: string;
   goodbye: string;
   affirmation: Branch[];
   branchs?: Branch[];

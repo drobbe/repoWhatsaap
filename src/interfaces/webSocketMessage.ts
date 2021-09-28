@@ -5,6 +5,7 @@ export interface WebSocketMessage {
   message: string;
   buttonMenuOptions?: boolean;
   formConsulta?: boolean;
+  formCompromiso?: boolean;
 
   whatsapp?: {
     socket: 'string';

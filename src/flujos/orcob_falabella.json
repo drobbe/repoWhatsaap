@@ -47,8 +47,10 @@
           "id": 33,
           "text": "Agendar compromiso de pago",
           "event": "Agendar compromiso de pago",
+          "socket": "compromiso_falabella",
+          "form": { "message": "registrando compromiso" },
           "enabled": true,
-          "type": "message"
+          "type": "form"
         },
         {
           "id": 34,

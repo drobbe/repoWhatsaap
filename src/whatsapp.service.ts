@@ -19,7 +19,7 @@ import { ChatInMemory } from './interfaces/chats';
 import { setInterval } from 'timers';
 import { WebSocketMessage } from './interfaces/webSocketMessage';
 import { Console } from 'console';
-
+import { DateTime } from 'luxon';
 const instance = axios.create({
   baseURL: 'https://realtime.sinaptica.io/v1/sinaptica/',
   timeout: 10000,
@@ -92,30 +92,42 @@ export class WhatsappService implements OnApplicationShutdown {
   private activeChats: ChatInMemory[] = [];
 
   private socket: any;
+  private userName: any;
 
   constructor(
     @Inject('WHATSAPP') private whatsapp: Whatsapp,
     private config: WhatsappConfigService,
     private log: Logger,
   ) {
-    this.chatBot = JSON.parse(this.config.get('FLOW'));
-    this.menuBranch = this.chatBot.branchs.find(c => c.menu === true);
     this.log.setContext('WhatsappService');
     this.FILES_FOLDER = path.resolve(__dirname, '../tmp/whatsapp-files');
     this.clean_downloads();
     this.mimetypes = this.config.mimetypes;
     this.files_lifetime = this.config.files_lifetime * SECOND;
     this.VERIFY_URL = config.get('VERIFY_URL');
+    this.userName = config.get('USERNAME');
+
     this.bot = config.get('BOT');
+    this.chatBot = config.flow();
+
+    this.menuBranch = this.chatBot.branchs.find(c => c.menu === true);
 
     this.socket = io(config.get('URL_SOCKET'), { autoConnect: true });
-    this.socket.auth = { id: 2, username: 'test' };
+    this.socket.auth = { id: this.userName, username: 'test' };
     this.socket.on('connect', () => {});
     // this.socket.on('message', data => console.log('data Mensagge', data));
 
     this.socket.on('orcob_falabella', (data: WebSocketMessage) => {
-      console.log(data);
-      this._handleWebsocketSimpleMessage(data);
+      this.log.warn('------Websocket------');
+      this.log.warn(data);
+      this.log.warn('------Websocket------');
+      const idChatInMemory = this.findIdChatByIdChat(data.idChat);
+      this.activeChats[idChatInMemory].queueMesage++;
+
+      setTimeout(() => {
+        this._handleWebsocketSimpleMessage(data);
+        this.activeChats[idChatInMemory].queueMesage--;
+      }, (this.activeChats[idChatInMemory].queueMesage - 1) * 500);
     });
 
     this.socket.on('disconnect', () => {
@@ -150,19 +162,6 @@ export class WhatsappService implements OnApplicationShutdown {
     // }, 3000);
   }
 
-  private clean_downloads() {
-    console.log(this.FILES_FOLDER);
-    console.log(fs.existsSync(this.FILES_FOLDER));
-    if (fs.existsSync(this.FILES_FOLDER)) {
-      del([`${this.FILES_FOLDER}/*`], { force: true }).then(paths =>
-        console.log('Deleted files and directories:\n', paths.join('\n')),
-      );
-    } else {
-      fs.mkdirSync(this.FILES_FOLDER);
-      this.log.log(`Directory '${this.FILES_FOLDER}' created from scratch`);
-    }
-  }
-
   private async callWebhook(data: Message, url) {
     try {
       const idSender = data.sender.id;
@@ -170,7 +169,6 @@ export class WhatsappService implements OnApplicationShutdown {
       const formatPhone = this._splitPhone(idSender);
       let idChatWs = data.chatId;
 
-      this.log.log('Verificando Si esta registrado');
       const chatIdInMemory = await this._handleChat(formatPhone, idSender);
 
       if (this.activeChats[chatIdInMemory].greetins === true) {
@@ -191,6 +189,205 @@ export class WhatsappService implements OnApplicationShutdown {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  private async onMessageHook(message: Message, url: string) {
+    if (message.isMMS || message.isMedia) {
+      this.downloadAndDecryptMedia(message).then(data =>
+        this.callWebhook(data, url),
+      );
+    } else {
+      this.callWebhook(message, url);
+    }
+  }
+
+  async sendToSocket(chatIdInMemory: number, message: Message) {
+    try {
+      let msg = message.body;
+
+      let date = new Date().toLocaleString();
+
+      let branch = this.getEventOfMessage(
+        msg,
+        this.activeChats[chatIdInMemory].lastBranch,
+      );
+      if (branch === null) return this.sendDefaultMesagge(chatIdInMemory);
+
+      let socketMsg = {
+        chatOnline: {
+          id: null,
+          message: '',
+          time: date,
+        },
+        idChat: this.activeChats[chatIdInMemory].idChat,
+        idUsername: this.userName,
+        message: branch.event,
+      };
+
+      this.activeChats[chatIdInMemory].lastBranch = branch.id;
+
+      this.socket.emit(this.bot, socketMsg);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async sendToSocketForm(chatIdInMemory: number, message: Message) {
+    let date = new Date().toLocaleString();
+
+    let positionActiveQuestion = this.activeChats[chatIdInMemory].form
+      .activeQuestion;
+
+    this.activeChats[chatIdInMemory].form.questions[
+      positionActiveQuestion
+    ].value = message.body;
+
+    //si es el ulitmo mensaje del fomrulaio
+    if (
+      this.activeChats[chatIdInMemory].form.activeQuestion ===
+      this.activeChats[chatIdInMemory].form.questions.length - 1
+    ) {
+      let branch = this.findBranchID(
+        this.activeChats[chatIdInMemory].lastBranch,
+        this.chatBot.branchs,
+      );
+
+      let socketMsg = {
+        chatOnline: {
+          id: null,
+          message: '',
+          time: date,
+        },
+        idChat: this.activeChats[chatIdInMemory].idChat,
+        idUsername: this.userName,
+        message: branch.form.message,
+      };
+
+      this.activeChats[chatIdInMemory].form.questions.forEach(q => {
+        socketMsg[q.parrameter] = q.value;
+      });
+
+      socketMsg['idUser'] = this.userName;
+
+      this.activeChats[chatIdInMemory].lastBranch = branch.id;
+
+      console.log(socketMsg);
+      console.log(branch.socket);
+      this.socket.emit(branch.socket, socketMsg);
+      this.cleanActiveForm(chatIdInMemory);
+    } else {
+      if (this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
+        return;
+      await this.whatsapp
+        .sendText(
+          this.activeChats[chatIdInMemory].idSender,
+          this.activeChats[chatIdInMemory].form.questions[
+            positionActiveQuestion + 1
+          ].message,
+        )
+        .then(result => {
+          this.activeChats[chatIdInMemory].form.activeQuestion++;
+        })
+        .catch(erro => {
+          console.error('Error when sending: ', erro); //return object errormenu
+        });
+    }
+  }
+
+  private async _handleChat(formatPhone, idSender): Promise<number> {
+    try {
+      let isRegister: any;
+      isRegister = false;
+      const index = this.activeChats.findIndex(a => (a.idSender = idSender));
+      if (index !== -1) {
+        this.log.log('Esta en Memoria ... ❄️❄️');
+
+        return index;
+      }
+
+      isRegister = await this.isRegisterChat(formatPhone);
+
+      if (isRegister === false) {
+        this.log.log('No esta Registrado, registrando... ✋✋');
+        isRegister = await this.registerChat(formatPhone);
+        isRegister = isRegister.response[0];
+      } else {
+        this.log.log('Chat Registrado ✊✊');
+
+        isRegister = isRegister[0];
+      }
+      isRegister = new ChatInMemory(isRegister);
+      isRegister.idSender = idSender;
+      return this.activeChats.push(isRegister) - 1;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // private isInMemoryByPhone(formatPhone) {
+  //   return this.activeChats.find(c => c.telefono === formatPhone);
+  // }
+
+  private async isRegisterChat(number: string): Promise<any> {
+    return instance
+      .get(`verifi/telephone/${number}`)
+      .then(function(response) {
+        if (response.data.length === 0) return false;
+        return response.data;
+      })
+      .catch(function(error) {
+        console.log(error);
+        return error;
+      });
+  }
+
+  private async registerChat(number: string): Promise<any> {
+    return instance
+      .post('/createChatUser', {
+        idempresa: this.userName,
+        message: [],
+        chatbot: 'chatbot orcob',
+        telefono: number,
+      })
+      .then(function(response) {
+        return response.data;
+      })
+      .catch(function(error) {
+        console.log(error);
+        return error;
+      });
+  }
+
+  private handleMesagges() {}
+
+  private _handleWebsocketSimpleMessage(data: WebSocketMessage) {
+    const idChatInMemory = this.findIdChatByIdChat(data.idChat);
+    let isMessageForm = false;
+
+    if (data.formConsulta === true || data.formCompromiso === true) {
+      this.activeForm(idChatInMemory, data);
+      isMessageForm = true;
+    }
+
+    //Evaluar si el mensaje es un formulario
+    const msg =
+      isMessageForm === true
+        ? this.activeChats[idChatInMemory].form.questions[0].message
+        : data.message;
+
+    if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+      return;
+    this.whatsapp
+      .sendText(this.activeChats[idChatInMemory].idSender, msg)
+      .then(result => {
+        this.log.log('Se esta mandando al webSocket ☀️☀️'); //return object success
+
+        if (data.buttonMenuOptions === true)
+          this.showAffirmation(idChatInMemory);
+      })
+      .catch(erro => {
+        console.error('Error when sending: ', erro); //return object errormenu
+      });
   }
 
   private async _handleAffirmation(chatIdInMemory, message: Message) {
@@ -217,7 +414,7 @@ export class WhatsappService implements OnApplicationShutdown {
           this.chatBot.goodbye,
         )
         .then(result => {
-          console.log('Se esta despidiendo ❌❌'); //return object success
+          this.log.log('Se esta despidiendo ❌❌'); //return object success
         })
         .catch(erro => {
           console.error('Error when sending: ', erro); //return object errormenu
@@ -225,111 +422,47 @@ export class WhatsappService implements OnApplicationShutdown {
     }
   }
 
-  cleanFormActiveChat(chatIdInMemory: number) {
+  private activeForm(idChatInMemory: number, dataWebsocket: WebSocketMessage) {
+    this.activeChats[idChatInMemory].form = {
+      active: true,
+      questions: dataWebsocket.whatsapp.messages,
+      activeQuestion: 0,
+      socket: dataWebsocket.whatsapp.socket,
+    };
+  }
+
+  /* uSAR ESTA FUNCION PARA MANDAR */
+  // async sendText(chatIdInMemory: number, text: string) {
+  //   setTimeout(() => {
+  //     this.whatsapp
+  //       .sendText(this.activeChats[chatIdInMemory].idSender, text)
+  //       .then(result => {
+  //         this.log.log('Enviando siguiente formulario ✅✅'); //return object success
+  //       })
+  //       .catch(erro => {
+  //         console.error('Error when sending: ', erro); //return object errormenu
+  //       });
+  //   }, 250);
+  // }
+
+  cleanActiveForm(chatIdInMemory: number) {
     this.activeChats[chatIdInMemory].form.active = false;
     delete this.activeChats[chatIdInMemory].form.socket;
     delete this.activeChats[chatIdInMemory].form.activeQuestion;
     delete this.activeChats[chatIdInMemory].form.questions;
   }
 
-  async sendToSocket(chatIdInMemory: number, message: Message) {
-    let msg = message.body;
-
-    let date = new Date().toLocaleString();
-
-    let branch = this.getEventOfMessage(
-      msg,
-      this.activeChats[chatIdInMemory].lastBranch,
-    );
-
-    let socketMsg = {
-      chatOnline: {
-        id: null,
-        message: '',
-        time: date,
-      },
-      idChat: this.activeChats[chatIdInMemory].idChat,
-      idUsername: 2,
-      message: branch.event,
-    };
-
-    this.activeChats[chatIdInMemory].lastBranch = branch.id;
-
-    this.socket.emit(this.bot, socketMsg);
-  }
-
-  async sendToSocketForm(chatIdInMemory: number, message: Message) {
-    let date = new Date().toLocaleString();
-
-    let positionActiveQuestion = this.activeChats[chatIdInMemory].form
-      .activeQuestion;
-
-    this.activeChats[chatIdInMemory].form.questions[
-      positionActiveQuestion
-    ].value = message.body;
-
-    //si es el ulitmo mensaje del fomrulaio
-    if (
-      this.activeChats[chatIdInMemory].form.activeQuestion ===
-      this.activeChats[chatIdInMemory].form.questions.length - 1
-    ) {
-      console.log(this.activeChats[chatIdInMemory].lastBranch);
-      let branch = this.findBranchID(
-        this.activeChats[chatIdInMemory].lastBranch,
-        this.chatBot.branchs,
-      );
-
-      console.log(branch);
-
-      let socketMsg = {
-        chatOnline: {
-          id: null,
-          message: '',
-          time: date,
-        },
-        idChat: this.activeChats[chatIdInMemory].idChat,
-        idUsername: 2,
-        message: branch.form.message,
-      };
-
-      this.activeChats[chatIdInMemory].form.questions.forEach(q => {
-        socketMsg[q.parrameter] = q.value;
-      });
-
-      socketMsg['idUser'] = 2;
-
-      this.activeChats[chatIdInMemory].lastBranch = branch.id;
-
-      console.log(socketMsg);
-      console.log(branch.socket);
-      this.socket.emit(branch.socket, socketMsg);
-      this.cleanFormActiveChat(chatIdInMemory);
-    } else {
-      if (this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
-        return;
-      await this.whatsapp
-        .sendText(
-          this.activeChats[chatIdInMemory].idSender,
-          this.activeChats[chatIdInMemory].form.questions[
-            positionActiveQuestion + 1
-          ].message,
-        )
-        .then(result => {
-          console.log('Enviando siguiente formulario 🍔🍔'); //return object success
-        })
-        .catch(erro => {
-          console.error('Error when sending: ', erro); //return object errormenu
-        });
-    }
-  }
-
   getEventOfMessage(msg: string, lastBranch: number): Branch | null {
     msg = msg.trim().toLocaleUpperCase();
     const index = this.optionAvailable.findIndex(o => o === msg);
 
-    let chuta = this.findBranchID(lastBranch, this.chatBot.branchs);
-
-    if (index !== -1) return chuta.branchs[index];
+    let findedBranch = this.findBranchID(lastBranch, this.chatBot.branchs);
+    if (
+      index !== -1 &&
+      findedBranch !== null &&
+      findedBranch.branchs[index] !== undefined
+    )
+      return findedBranch.branchs[index];
 
     return null;
   }
@@ -349,7 +482,7 @@ export class WhatsappService implements OnApplicationShutdown {
       await this.whatsapp
         .sendText(this.activeChats[idChatInMemory].idSender, message)
         .then(result => {
-          console.log('Se esta Saludando Criminal 😁😁'); //return object success
+          this.log.log('Se esta Saludando ✨✨'); //return object success
         })
         .catch(erro => {
           console.error('Error when sending: ', erro); //return object errormenu
@@ -372,7 +505,7 @@ export class WhatsappService implements OnApplicationShutdown {
             `${this.optionAvailable[i]} - ${branch.text}`,
           )
           .then(result => {
-            console.log('Estas poniendo en el menu'); //return object success
+            this.log.log('Estas poniendo en el menu ⚙️⚙️'); //return object success
           })
           .catch(erro => {
             console.error('Error when sending: ', erro); //return object error
@@ -398,7 +531,7 @@ export class WhatsappService implements OnApplicationShutdown {
             `${this.optionAvailable[i]} - ${branch.text}`,
           )
           .then(result => {
-            console.log('Estas poniendo en el menu'); //return object success
+            this.log.log('Mostrando Afirmaciones ❓❓'); //return object success
           })
           .catch(erro => {
             console.error('Error when sending: ', erro); //return object error
@@ -411,78 +544,30 @@ export class WhatsappService implements OnApplicationShutdown {
     this.activeChats[idChatInMemory].affirmation = true;
   }
 
-  private async _handleChat(formatPhone, idSender): Promise<number> {
-    let isRegister = await this.isRegisterChat(formatPhone);
-    const index = this.activeChats.findIndex(a => (a.idSender = idSender));
-    if (index !== -1) {
-      return index;
+  sendDefaultMesagge(idChatInMemory: number) {
+    if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us') {
+      return;
     }
-
-    if (isRegister === false) {
-      this.log.log('no esta Registrado, registrando...');
-      isRegister = await this.registerChat(formatPhone);
-      isRegister = isRegister.response[0];
-    } else {
-      this.log.log('Registrado relajao relajao');
-      isRegister = isRegister[0];
-    }
-
-    isRegister = {
-      ...isRegister,
-      idSender: idSender,
-      greetins: true,
-      lastBranch: null,
-      form: {
-        active: false,
-      },
-    };
-
-    return this.activeChats.push(isRegister) - 1;
-  }
-
-  private async isRegisterChat(number: string): Promise<any> {
-    return instance
-      .get(`verifi/telephone/${number}`)
-      .then(function(response) {
-        if (response.data.length === 0) return false;
-        return response.data;
+    this.whatsapp
+      .sendText(this.activeChats[idChatInMemory].idSender, this.chatBot.default)
+      .then(result => {
+        this.log.log('Enviando Mensajes default ❕❕');
+        this.menu(idChatInMemory);
       })
-      .catch(function(error) {
-        console.log(error);
-        return error;
+      .catch(erro => {
+        console.error('Error when sending: ', erro); //return object error
       });
   }
 
-  private async registerChat(number: string): Promise<any> {
-    return instance
-      .post('/createChatUser', {
-        idempresa: 2,
-        message: [],
-        chatbot: 'chatbot orcob',
-        telefono: number,
-      })
-      .then(function(response) {
-        return response.data;
-      })
-      .catch(function(error) {
-        console.log(error);
-        return error;
-      });
+  findIdChatByIdChat(idChat: number): number {
+    return this.activeChats.findIndex(c => (c.idChat = idChat));
   }
 
   private _splitPhone(whatsappId: string): string {
     return whatsappId.split('@')[0];
   }
 
-  private async onMessageHook(message: Message, url: string) {
-    if (message.isMMS || message.isMedia) {
-      this.downloadAndDecryptMedia(message).then(data =>
-        this.callWebhook(data, url),
-      );
-    } else {
-      this.callWebhook(message, url);
-    }
-  }
+  //Externo
 
   private async downloadAndDecryptMedia(message: Message) {
     return this.whatsapp.decryptFile(message).then(async buffer => {
@@ -526,46 +611,16 @@ export class WhatsappService implements OnApplicationShutdown {
     );
   }
 
-  private _handleWebsocketSimpleMessage(data: WebSocketMessage) {
-    const idChatInMemory = this.findIdChatByIdChat(data.idChat);
-    if (data.formConsulta === true) this.activeForm(idChatInMemory, data);
-
-    if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
-      return;
-    this.whatsapp
-      .sendText(this.activeChats[idChatInMemory].idSender, data.message)
-      .then(result => {
-        console.log('Se esta mandando la monda 💥💥'); //return object success
-
-        if (data.buttonMenuOptions === true)
-          this.showAffirmation(idChatInMemory);
-      })
-      .catch(erro => {
-        console.error('Error when sending: ', erro); //return object errormenu
-      });
-  }
-
-  private activeForm(idChatInMemory: number, dataWebsocket: WebSocketMessage) {
-    this.activeChats[idChatInMemory].form = {
-      active: true,
-      questions: dataWebsocket.whatsapp.messages,
-      activeQuestion: 0,
-      socket: dataWebsocket.whatsapp.socket,
-    };
-  }
-
-  findIdChatByIdChat(idChat: number): number {
-    return this.activeChats.findIndex(c => (c.idChat = idChat));
-  }
-
-  async sendText(chatIdInMemory: number, text: string) {
-    return this.whatsapp
-      .sendText(this.activeChats[chatIdInMemory].idSender, text)
-      .then(result => {
-        console.log('Enviando siguiente formulario 🍔🍔'); //return object success
-      })
-      .catch(erro => {
-        console.error('Error when sending: ', erro); //return object errormenu
-      });
+  private clean_downloads() {
+    console.log(this.FILES_FOLDER);
+    console.log(fs.existsSync(this.FILES_FOLDER));
+    if (fs.existsSync(this.FILES_FOLDER)) {
+      del([`${this.FILES_FOLDER}/*`], { force: true }).then(paths =>
+        console.log('Deleted files and directories:\n', paths.join('\n')),
+      );
+    } else {
+      fs.mkdirSync(this.FILES_FOLDER);
+      this.log.log(`Directory '${this.FILES_FOLDER}' created from scratch`);
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import fs = require('fs');
 
 @Injectable()
 export class WhatsappConfigService {
@@ -35,8 +36,15 @@ export class WhatsappConfigService {
     return this.configService.get('BOT');
   }
 
-  get flow(): string {
-    return this.configService.get('FLOW');
+  get USERNAME(): string {
+    return this.configService.get('USERNAME');
+  }
+
+  flow() {
+    const flow = require('../src/flujos/orcob_falabella.json');
+    console.log('------');
+    console.log(flow);
+    return flow;
   }
 
   get files_lifetime(): number {
