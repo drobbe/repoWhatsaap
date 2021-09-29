@@ -5,6 +5,8 @@ venv
 # compiled output
 /dist
 /node_modules
+/tmp
+.env
 
 # Logs
 logs
