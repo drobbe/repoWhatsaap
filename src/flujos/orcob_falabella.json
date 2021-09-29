@@ -54,7 +54,7 @@
         },
         {
           "id": 34,
-          "text": "conectarse con un asesor",
+          "text": "Conectarse con un asesor",
           "event": "conectarse con un asesor",
           "enabled": true,
           "type": "chabot"

@@ -19,3 +19,11 @@ export interface WebSocketMessage {
     ];
   };
 }
+
+export interface WebSocketChat {
+  time: string;
+  content: string;
+  ID_emet: number;
+  ID_dest: number;
+  idChat: number;
+}

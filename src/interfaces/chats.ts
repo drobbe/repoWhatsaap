@@ -7,6 +7,8 @@ export class ChatInMemory {
   affirmation: boolean;
   lastBranch: number | null;
   queueMesage: number;
+  asesorOnline: boolean;
+  idAsesor: number | null;
   form: {
     active: boolean;
     activeQuestion?: number;
@@ -31,6 +33,8 @@ export class ChatInMemory {
     this.affirmation = false;
     this.lastBranch = null;
     this.queueMesage = 0;
+    this.asesorOnline = false;
+    this.idAsesor = null;
     this.form = {
       active: false,
     };

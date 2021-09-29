@@ -36,8 +36,8 @@ export class WhatsappConfigService {
     return this.configService.get('BOT');
   }
 
-  get USERNAME(): string {
-    return this.configService.get('USERNAME');
+  get USER(): string {
+    return this.configService.get('USER');
   }
 
   flow() {
