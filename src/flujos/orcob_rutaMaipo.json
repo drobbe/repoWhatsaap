@@ -1,0 +1,65 @@
+{
+  "greetings": [
+    "Hola Bienvenid@ la atención personalizada de Ruta del Maipo ",
+    "En que te podemos ayudar? , favor digita una opción :"
+  ],
+  "goodbye": "Gracias por su tiempo , que tenga un buen dia.",
+  "default": "Por favor no le entendemos escoja la lista de opciones.",
+  "affirmation": [
+    {
+      "id": -1,
+      "text": "SI",
+      "event": null,
+      "enabled": true,
+      "type": "afirmation",
+      "destiny": { "toMenu": true, "showMenu": true }
+    },
+    {
+      "id": -2,
+      "text": "NO",
+      "event": null,
+      "enabled": true,
+      "destiny": { "toMenu": true, "showMenu": false, "showGoodbye": true }
+    }
+  ],
+  "branchs": [
+    {
+      "id": 3,
+      "menu": true,
+      "branchs": [
+        {
+          "id": 31,
+          "text": "Deseas mayor informacion de su deuda",
+          "event": "Deseas mayor informacion de su deuda",
+          "socket": "consulta_falabella",
+          "form": { "message": "consultar rut" },
+          "enabled": true,
+          "type": "form"
+        },
+        {
+          "id": 32,
+          "text": "Pagar deuda On Line",
+          "event": "Pagar deuda On Line",
+          "enabled": true,
+          "type": "message"
+        },
+        {
+          "id": 33,
+          "text": "Agendar compromiso de pago",
+          "event": "Agendar compromiso de pago",
+          "socket": "compromiso_falabella",
+          "form": { "message": "registrando compromiso" },
+          "enabled": true,
+          "type": "form"
+        },
+        {
+          "id": 34,
+          "text": "Conectarse con un asesor",
+          "event": "conectarse con un asesor",
+          "enabled": true,
+          "type": "chabot"
+        }
+      ]
+    }
+  ]
+}

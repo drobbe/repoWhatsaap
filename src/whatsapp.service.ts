@@ -119,7 +119,7 @@ export class WhatsappService implements OnApplicationShutdown {
     this.socket.on('connect', () => {});
     // this.socket.on('message', data => console.log('data Mensagge', data));
 
-    this.socket.on('orcob_falabella', (data: WebSocketMessage) => {
+    this.socket.on(this.bot, (data: WebSocketMessage) => {
       this.log.warn('------Websocket------');
       this.log.warn(data);
       this.log.warn('------Websocket------');
