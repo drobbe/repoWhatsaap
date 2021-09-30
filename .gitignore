@@ -2,6 +2,7 @@ tokens
 files
 venv
 
+package-lock.json
 # compiled output
 /dist
 /node_modules
@@ -15,7 +16,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
-
 # OS
 .DS_Store
 
