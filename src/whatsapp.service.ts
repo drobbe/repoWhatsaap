@@ -16,10 +16,9 @@ import { io } from 'socket.io-client';
 import axios from 'axios';
 import { Branch, ChatBot } from './interfaces/chatbots';
 import { ChatInMemory } from './interfaces/chats';
-import { setInterval } from 'timers';
+
 import { WebSocketChat, WebSocketMessage } from './interfaces/webSocketMessage';
-import { Console } from 'console';
-import { DateTime } from 'luxon';
+
 const instance = axios.create({
   baseURL: 'https://realtime.sinaptica.io/v1/sinaptica/',
   timeout: 10000,
@@ -179,7 +178,10 @@ export class WhatsappService implements OnApplicationShutdown {
       let idChatWs = data.chatId;
 
       const chatIdInMemory = await this._handleChat(formatPhone, idSender);
-
+			console.log("------------------------ xxxxxxxxxxxxxxxx")
+			console.log(chatIdInMemory)
+			console.log(this.activeChats)
+			console.log("------------------------ xxxxxxxxxxxxxxxx")
       if (this.activeChats[chatIdInMemory].greetins === true) {
         await this.greetins(chatIdInMemory);
         await this.menu(chatIdInMemory);
@@ -302,8 +304,8 @@ export class WhatsappService implements OnApplicationShutdown {
       this.socket.emit(branch.socket, socketMsg);
       this.cleanActiveForm(chatIdInMemory);
     } else {
-      if (this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
-        return;
+      //if(this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
+      //  return;
       await this.whatsapp
         .sendText(
           this.activeChats[chatIdInMemory].idSender,
@@ -327,21 +329,16 @@ export class WhatsappService implements OnApplicationShutdown {
       const index = this.activeChats.findIndex(a => (a.idSender = idSender));
       if (index !== -1) {
         this.log.log('Esta en Memoria ... ❄️❄️');
-
         return index;
       }
 
       isRegister = await this.isRegisterChat(formatPhone);
-
-      // console.log('isRegister', isRegister, formatPhone);
-
       if (isRegister === false) {
         this.log.log('No esta Registrado, registrando... ✋✋');
         isRegister = await this.registerChat(formatPhone);
         isRegister = isRegister.response[0];
       } else {
         this.log.log('Chat Registrado ✊✊');
-
         isRegister = isRegister[0];
       }
       isRegister = new ChatInMemory(isRegister);
@@ -398,13 +395,10 @@ export class WhatsappService implements OnApplicationShutdown {
     }
 
     //Evaluar si el mensaje es un formulario
-    const msg =
-      isMessageForm === true
-        ? this.activeChats[idChatInMemory].form.questions[0].message
-        : data.message;
+    const msg =isMessageForm === true ? this.activeChats[idChatInMemory].form.questions[0].message: data.message;
 
-    if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
-      return;
+    //if(this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+    //  return;
     this.whatsapp
       .sendText(this.activeChats[idChatInMemory].idSender, msg)
       .then(result => {
@@ -438,16 +432,18 @@ export class WhatsappService implements OnApplicationShutdown {
       this.activeChats[chatIdInMemory].lastBranch = this.menuBranch.id;
       this.activeChats[chatIdInMemory].affirmation = false;
     }
-    if (affirmation.destiny.showGoodbye) {
-      if (this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
-        return;
+
+    if(affirmation.destiny.showGoodbye) {
+      //if (this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
+      //  return;
       await this.whatsapp
         .sendText(
           this.activeChats[chatIdInMemory].idSender,
           this.chatBot.goodbye,
         )
         .then(result => {
-          this.log.log('Se esta despidiendo ❌❌'); //return object success
+					console.log('Se esta despidiendo ❌❌')
+          
         })
         .catch(erro => {
           console.error('Error when sending: ', erro); //return object errormenu
@@ -513,8 +509,8 @@ export class WhatsappService implements OnApplicationShutdown {
 
   async greetins(idChatInMemory: number) {
     for (const message of this.chatBot.greetings) {
-      if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
-        return;
+      //if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+      //  return;
       await this.whatsapp
         .sendText(this.activeChats[idChatInMemory].idSender, message)
         .then(result => {
@@ -533,8 +529,8 @@ export class WhatsappService implements OnApplicationShutdown {
     let i = 0;
     for (const branch of this.menuBranch.branchs) {
       if (branch.enabled === true) {
-        if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
-          return;
+        //if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+        //  return;
         await this.whatsapp
           .sendText(
             this.activeChats[idChatInMemory].idSender,
@@ -558,9 +554,9 @@ export class WhatsappService implements OnApplicationShutdown {
     let i = 0;
     const afirmationBranch = this.chatBot.affirmation;
     for (const branch of afirmationBranch) {
-      if (branch.enabled === true) {
-        if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
-          return;
+      if(branch.enabled === true) {
+        //if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+        //  return;
         await this.whatsapp
           .sendText(
             this.activeChats[idChatInMemory].idSender,
@@ -581,9 +577,9 @@ export class WhatsappService implements OnApplicationShutdown {
   }
 
   sendDefaultMesagge(idChatInMemory: number) {
-    if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us') {
-      return;
-    }
+    //if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us') {
+    //  return;
+    //}
     this.whatsapp
       .sendText(this.activeChats[idChatInMemory].idSender, this.chatBot.default)
       .then(result => {
@@ -605,7 +601,10 @@ export class WhatsappService implements OnApplicationShutdown {
 
   private _activeChatWithAgent(idChatInMemory: number) {
     let clase = this;
-
+		console.log("::::::::::::::::::::::::::::::::::: asigned :::::::::::::::::::::::::::::::::::");
+		console.log(clase);
+		console.log(idChatInMemory);
+		console.log("::::::::::::::::::::::::::::::::::: asigned :::::::::::::::::::::::::::::::::::");
     return instance
       .post(`https://realtime.sinaptica.io/v1/sinaptica/asignedAsesor`, {
         idEmpresa: this.userName,
@@ -617,10 +616,7 @@ export class WhatsappService implements OnApplicationShutdown {
         this.log.warn(response.data);
         this.log.warn('------asignedAsesor------');
 
-        if (
-          response.data.hasOwnProperty('idAsesor') &&
-          response.data.idAsesor > 0
-        ) {
+        if(response.data.hasOwnProperty('idAsesor') &&  response.data.idAsesor > 0) {
           clase.activeChats[idChatInMemory].asesorOnline = true;
           clase.activeChats[idChatInMemory].idAsesor = response.data.idAsesor;
           clase._sendText(
