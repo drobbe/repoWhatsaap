@@ -18,7 +18,7 @@ export class WhatsappConfigService {
   }
 
   get port(): string {
-    return this.configService.get('WHATSAPP_API_PORT', '3000');
+    return this.configService.get('WHATSAPP_API_PORT', '3001');
   }
 
   get socketIoUrl(): string {
