@@ -18,6 +18,7 @@ import { Branch, ChatBot } from './interfaces/chatbots';
 import { ChatInMemory } from './interfaces/chats';
 
 import { WebSocketChat, WebSocketMessage } from './interfaces/webSocketMessage';
+import { Console } from 'console';
 const instance = axios.create({
   baseURL: 'https://realtime.sinaptica.io/v1/sinaptica/',
   timeout: 10000,
@@ -103,14 +104,11 @@ export class WhatsappService implements OnApplicationShutdown {
     this.chatBot = config.flow();
 
     this.menuBranch = this.chatBot.branchs.find(c => c.menu === true);
-
     this.socket = io(config.get('URL_SOCKET'), { autoConnect: true });
     this.socket.auth = { id: this.userName, username: 'test' };
-    this.socket.on('connect', () => {
-			console.log("")
-		});
+    this.socket.on('connect', () => {});
 
-    this.socket.on('orcob_falabella', (data: WebSocketMessage) => {
+    this.socket.on('orcob_rutaMaipo', (data: WebSocketMessage) => {
       this.log.warn('------Websocket------');
       this.log.warn(data);
       this.log.warn('------Websocket------');
@@ -157,7 +155,7 @@ export class WhatsappService implements OnApplicationShutdown {
     try {
       const idSender = data.sender.id;
       const formatPhone = this._splitPhone(idSender);
-      let idChatWs = data.chatId;
+   
       const chatIdInMemory = await this._handleChat(formatPhone, idSender);
       console.log('------------------------ xxxxxxxxxxxxxxxx');
       console.log(chatIdInMemory);
@@ -196,9 +194,7 @@ export class WhatsappService implements OnApplicationShutdown {
 
   private async onMessageHook(message: Message, url: string) {
     if(message.isMMS || message.isMedia) {
-      this.downloadAndDecryptMedia(message).then(data =>
-        this.callWebhook(data, url),
-      );
+      this.downloadAndDecryptMedia(message).then(data => this.callWebhook(data, url));
     } else {
       this.callWebhook(message, url);
     }
@@ -226,8 +222,11 @@ export class WhatsappService implements OnApplicationShutdown {
         this._activeChatWithAgent(chatIdInMemory);
         return;
       }
-
-      this.socket.emit(this.bot, socketMsg);
+			console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+			console.log(this.bot)
+			console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+      this.socket.emit("orcob_rutaMaipo", socketMsg);
+			//this.socket.emit(this.bot, socketMsg);
     } catch (error) {
       console.log(error);
     }
@@ -287,7 +286,7 @@ export class WhatsappService implements OnApplicationShutdown {
       isRegister = await this.isRegisterChat(formatPhone);
       if (isRegister === false) {
         this.log.log('No esta Registrado, registrando... ✋✋');
-        isRegister = await this.registerChat(formatPhone);
+        isRegister = await this.registerChat(formatPhone) ;
         isRegister = isRegister.response[0];
       } else {
         this.log.log('Chat Registrado ✊✊');
@@ -318,8 +317,9 @@ export class WhatsappService implements OnApplicationShutdown {
   }
 
   private async registerChat(number: string): Promise<any> {
-    return instance.post('/createChatUser', { idempresa: this.userName,  message: [],  chatbot: 'chatbot orcob',  telefono: number })
-    .then(function(response) {
+		//chatbot: 'orcob falabella
+    return instance.post('/createChatUser', { idempresa: this.userName,  message: [], chatbot: 'orcob ruta del maipo',  telefono: number })
+    .then(function(response){
       return response.data;
     })
     .catch(function(error) {
@@ -596,10 +596,10 @@ export class WhatsappService implements OnApplicationShutdown {
   }
 
   private clean_downloads() {
-    if (fs.existsSync(this.FILES_FOLDER)) {
-      del([`${this.FILES_FOLDER}/*`], { force: true }).then(paths =>
-        console.log('Deleted files and directories:\n', paths.join('\n')),
-      );
+    if(fs.existsSync(this.FILES_FOLDER)) {
+      del([`${this.FILES_FOLDER}/*`], { force: true }).then(paths =>{
+				console.log('Deleted files and directories:\n', paths.join('\n'))
+			});
     } else {
       fs.mkdirSync(this.FILES_FOLDER);
       this.log.log(`Directory '${this.FILES_FOLDER}' created from scratch`);

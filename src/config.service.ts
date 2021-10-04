@@ -41,9 +41,7 @@ export class WhatsappConfigService {
   }
 
   flow() {
-    const flow = require('../src/flujos/orcob_falabella.json');
-    console.log('------');
-    console.log(flow);
+    const flow = require('../src/flujos/orcob_rutaMaipo.json');
     return flow;
   }
 
