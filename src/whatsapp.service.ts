@@ -1,5 +1,4 @@
 import { Chat, create, Message, Whatsapp } from 'venom-bot';
-// import { WhatsappMessage } from './interfaces/whattsapeMessage';
 import {
   Inject,
   Injectable,
@@ -18,7 +17,6 @@ import { Branch, ChatBot } from './interfaces/chatbots';
 import { ChatInMemory } from './interfaces/chats';
 
 import { WebSocketChat, WebSocketMessage } from './interfaces/webSocketMessage';
-import { Console } from 'console';
 const instance = axios.create({
   baseURL: 'https://realtime.sinaptica.io/v1/sinaptica/',
   timeout: 10000,
@@ -28,7 +26,6 @@ const instance = axios.create({
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { promisify } = require('util');
 const writeFileAsync = promisify(fs.writeFile);
-
 const SECOND = 1000;
 
 export const whatsappProvider = {
@@ -278,22 +275,25 @@ export class WhatsappService implements OnApplicationShutdown {
       let isRegister: any;
       isRegister = false;
       const index = this.activeChats.findIndex(a => (a.idSender = idSender));
-      if (index !== -1) {
+      if(index !== -1){
         this.log.log('Esta en Memoria ... ❄️❄️');
         return index;
       }
 
       isRegister = await this.isRegisterChat(formatPhone);
-      if (isRegister === false) {
-        this.log.log('No esta Registrado, registrando... ✋✋');
+      if(isRegister === false) {
         isRegister = await this.registerChat(formatPhone) ;
         isRegister = isRegister.response[0];
+				this.log.log('No esta Registrado, registrando... ✋✋');
+				this.log.log(isRegister);
+				this.log.log('No esta Registrado, registrando... ✋✋');
       } else {
         this.log.log('Chat Registrado ✊✊');
         isRegister = isRegister[0];
       }
       isRegister = new ChatInMemory(isRegister);
       isRegister.idSender = idSender;
+			isRegister.form 
       return this.activeChats.push(isRegister) - 1;
     } catch (error) {
       console.log(error);
