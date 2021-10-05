@@ -234,6 +234,9 @@ export class WhatsappService implements OnApplicationShutdown {
     let msg = message.body.trim().toLowerCase();
     let positionActiveQuestion = this.activeChats[chatIdInMemory].form.activeQuestion;
 
+		console.log("llllllllllllllllllllllllllllllllllllllllllllll")
+		console.log(this.activeChats[chatIdInMemory])
+		console.log("llllllllllllllllllllllllllllllllllllllllllllll")
     this.activeChats[chatIdInMemory].form.questions[positionActiveQuestion].value = message.body;
     //si es el ulitmo mensaje del fomrulaio
     if(this.activeChats[chatIdInMemory].form.activeQuestion===this.activeChats[chatIdInMemory].form.questions.length - 1){
