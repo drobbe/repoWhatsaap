@@ -7,6 +7,7 @@ export class ApiSinaptica {
 	constructor(){
 		this.instance = axios.create({
 			baseURL: 'https://realtime.sinaptica.io/v1/sinaptica',
+			//baseURL: 'http://localhost:8089/v1/sinaptica',
 			timeout: 10000,
 			headers: { 'Content-Type': 'application/json' },
 		});

@@ -14,7 +14,6 @@ import fs = require('fs');
 import del = require('del');
 
 import { io } from 'socket.io-client';
-import axios from 'axios';
 import { Branch, ChatBot } from './interfaces/chatbots';
 import { ChatInMemory } from './interfaces/chats';
 
@@ -22,11 +21,6 @@ import { saveUserNotFound, consultaRutUsername} from './helper/helper.whatsapp';
 import { whatsappMenu } from './helper/message.whatsap';
 import { ApiSinaptica } from './services/api.sinaptica'
 import { WebSocketChat, WebSocketMessage } from './interfaces/webSocketMessage';
-const instance = axios.create({
-  baseURL: 'https://realtime.sinaptica.io/v1/sinaptica/',
-  timeout: 10000,
-  headers: { 'Content-Type': 'application/json' },
-});
 
 const SECOND = 1000;
 import { promisify } from "util";
@@ -96,10 +90,14 @@ export class WhatsappService implements OnApplicationShutdown {
 
     this.chatBot = require('./flujos/serbanc_sevsa');
     this.menuBranch = this.chatBot.branchs.find(c => c.menu === true);
-    this.socket = io(config.get('URL_SOCKET'), { autoConnect: true });
-    //this.socket.auth = { id: this.idEmpresa, username: 'test' };
+		this.socket = io('wss://realtime.sinaptica.io', { autoConnect: true });
+    //this.socket = io('ws://localhost:8089', { autoConnect: true });
+    this.socket.auth = { id: 1000, username: 'whastsapp' };
 
-    this.socket.on('whatsapp', (data: WebSocketChat) => {
+    this.socket.on('whatsapp', (data: any) => {
+			console.log("::::::::::::::::.. whatsapp ::::::::::::::")
+			console.log(data)
+			console.log("::::::::::::::::.. whatsapp ::::::::::::::")
       const idChatInMemory = this.activeChats.findIndex(c => (c.idChat = data.idChat));
 			this.sendMessageWhatsapp(this.activeChats[idChatInMemory].idSender, data.message)
     });
@@ -130,6 +128,9 @@ export class WhatsappService implements OnApplicationShutdown {
       const idSender = data.sender.id;
       const formatPhone = this._splitPhone(idSender);
       const chatIdInMemory = await this._handleChat(formatPhone, idSender);
+			console.log("+++++++++++++ general +++++++++++")
+			console.log(this.activeChats[chatIdInMemory])
+			console.log("+++++++++++++ general +++++++++++")
       if(this.activeChats[chatIdInMemory].greetins === true) {
         await this.greetins(chatIdInMemory);
         return;
@@ -275,6 +276,9 @@ export class WhatsappService implements OnApplicationShutdown {
       if(index !== -1)return index
 
 			let isRegister = await this.apiSinaptica.verifyUsername(formatPhone)
+			console.log("verificando")
+			console.log(isRegister)
+			console.log("verificando")
       if(isRegister === false) {
 				isRegister = await this.apiSinaptica.createUsername(this.idEmpresa, formatPhone) ;
       }
