@@ -332,7 +332,7 @@ export class WhatsappService implements OnApplicationShutdown {
 	}
 
 	private async sendMessageWhatsapp(number: string, message: string){
-		if(number !== '51941453211@c.us') return;	
+		//if(number !== '51941453211@c.us') return;	
 		
 		return this.whatsapp.sendText(number, message)
     .then(result => {	return true})
