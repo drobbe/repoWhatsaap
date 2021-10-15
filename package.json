@@ -32,6 +32,7 @@
     "axios": "^0.21.4",
     "class-validator": "^0.12.2",
     "del": "^6.0.0",
+    "dotenv": "^8.2.0",
     "luxon": "^2.0.2",
     "mime-types": "^2.1.27",
     "mysql2": "^2.3.0",

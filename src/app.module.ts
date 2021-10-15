@@ -16,7 +16,8 @@ console.log('###########################################################');
     WhatsappConfigService,
     ConfigModule.forRoot({  
 			envFilePath: ['./.env', `./src/env/${process.argv[2]}.env`],
-			isGlobal: true,}),
+			isGlobal: true,
+		}),
     ServeStaticModule.forRootAsync({
       imports: [WhatsappConfigService],
       extraProviders: [WhatsappConfigService],
