@@ -35,3 +35,11 @@ export async function UserNotFoundCreate(idEmpresa, nombre, telefono, mail){
 	const insert = `INSERT INTO UserNotFounds (idEmpresa, nombre, telefono, email) VALUES (${idEmpresa}, '${nombre}', '${telefono}', '${mail}')`;
 	return connection.query(insert);
 }
+	
+export async function UserSaveCompromiso(idCampana, rut, monto, fecha, tipoPago){
+	const insert = `INSERT INTO UserNotFounds (IdCampana, rut, monto, forma_pago, fecha) VALUES (${idCampana}, '${rut}', '${monto}', '${fecha}', '${tipoPago}')`;
+	const sssssssss = await connection.query(insert);
+	console.log("insertttttttttttttttt")
+	console.log(sssssssss)
+	return sssssssss;
+}

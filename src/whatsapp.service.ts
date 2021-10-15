@@ -17,7 +17,7 @@ import { io } from 'socket.io-client';
 import { Branch, ChatBot } from './interfaces/chatbots';
 import { ChatInMemory } from './interfaces/chats';
 
-import { saveUserNotFound, consultaRutUsername} from './helper/helper.whatsapp';
+import { saveUserNotFound, consultaRutUsername, consultaRutUserOrcob, saveCompromiso } from './helper/helper.whatsapp';
 //import { whatsappMenu } from './helper/message.whatsap';
 import { ApiSinaptica } from './services/api.sinaptica'
 import { WebSocketChat, WebSocketMessage } from './interfaces/webSocketMessage';
@@ -94,8 +94,9 @@ export class WhatsappService implements OnApplicationShutdown {
 		console.log(config.get('FLOW'))
 		console.log("::::::::::::::::.. init ::::::::::::::")
     this.menuBranch = this.chatBot.branchs.find(c => c.menu === true);
-		this.socket = io('wss://realtime.sinaptica.io', { autoConnect: true });
-    //this.socket = io('ws://localhost:8089', { autoConnect: true });
+		//this.socket = io('wss://realtime.sinaptica.io', { autoConnect: true });
+		//this.socket = io('wss://realtime.sinaptica.io', { autoConnect: true });
+    this.socket = io('ws://localhost:8089', { autoConnect: true });
     this.socket.auth = { id: 1000, username: 'whastsapp' };
 
     this.socket.on('whatsapp', (data: any) => {
@@ -252,34 +253,42 @@ export class WhatsappService implements OnApplicationShutdown {
 			if(this.activeChats[chatIdInMemory].form.activeQuestion===this.activeChats[chatIdInMemory].form.questions.length - 1){
 				const branch = this.findBranchID(this.activeChats[chatIdInMemory].lastBranch, msg, this.chatBot.branchs);
 				if(branch == undefined){
-					/** este caso regularmente es en primermomento cuando consulta el usuario */
-					const questions = this.activeChats[chatIdInMemory].form.questions[positionActiveQuestion];				
-					const saveConsulta = await consultaRutUsername({ idChat: this.activeChats[chatIdInMemory].idChat, idUser: this.activeChats[chatIdInMemory].idUsername,	rutUser: msg,	message: questions.message })
+					/** este caso regularmente es en primer momento cuando consulta el usuario */
+					const questions = this.activeChats[chatIdInMemory].form.questions[positionActiveQuestion];
+					let saveConsulta = [];
+					if(this.config.get('USER') == '7'){//consulta solo para orcob
+						saveConsulta = await consultaRutUserOrcob({ idChat: this.activeChats[chatIdInMemory].idChat, idUser: this.activeChats[chatIdInMemory].idUsername,	rutUser: msg,	message: questions.message })
+					} else {//consulta solo para serbanc
+						saveConsulta = await consultaRutUsername({ idChat: this.activeChats[chatIdInMemory].idChat, idUser: this.activeChats[chatIdInMemory].idUsername,	rutUser: msg,	message: questions.message })
+					}	
 					this.cleanActiveForm(chatIdInMemory);
 					if(!saveConsulta.length) return;
 					await this.onMessageWhatsap(chatIdInMemory, saveConsulta)
 					return
 				}
 	
-				///ojoooooooooooooooooooooooooooo
 				const socketMsg = {
-					chatOnline: {
-						id: this.activeChats[chatIdInMemory].idUsername,
-						message: branch.form.message,
-						time: date,
-					},
 					idChat: this.activeChats[chatIdInMemory].idChat,
-					idUsername: this.activeChats[chatIdInMemory].idUsername,
-					message: branch.form.message,
 					idUser: this.activeChats[chatIdInMemory].idUsername,
 				};
-	
 				this.activeChats[chatIdInMemory].form.questions.forEach(q => {
 					socketMsg[q.parrameter] = q.value;
 				});
 				this.activeChats[chatIdInMemory].lastBranch = branch.id;
-				this.socket.emit(branch.socket, socketMsg);
+				//this.socket.emit(branch.socket, socketMsg);
+				console.log("========================================================================")
+				console.log("========================================================================")
+				console.log("========================================================================")
+				console.log("========================================================================")
+				console.log(socketMsg)
+				console.log("========================================================================")
+				console.log("========================================================================")
+				console.log("========================================================================")
+				console.log("========================================================================")
+				const compromiso = await saveCompromiso(socketMsg)
 				this.cleanActiveForm(chatIdInMemory);
+				if(!compromiso.length) return
+				this.onMessageWhatsap(chatIdInMemory, compromiso)
 			} else {
 				const response = await this.sendMessageWhatsapp(this.activeChats[chatIdInMemory].idSender, this.activeChats[chatIdInMemory].form.questions[positionActiveQuestion + 1].message);
 				if(response=== true)
