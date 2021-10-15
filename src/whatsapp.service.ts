@@ -20,6 +20,8 @@ import { setInterval } from 'timers';
 import { WebSocketChat, WebSocketMessage } from './interfaces/webSocketMessage';
 import { Console } from 'console';
 import { DateTime } from 'luxon';
+import { SocketController } from './api/socket.controller';
+
 const instance = axios.create({
   baseURL: 'https://realtime.sinaptica.io/v1/sinaptica/',
   timeout: 10000,
@@ -38,11 +40,8 @@ export const whatsappProvider = {
     create(
       'sessionName',
       (base64Qr, asciiQR, attempt, urlCode) => {
-        console.log('generando codigo qr');
-        // console.log(attempt);
-        // console.log(urlCode);
-        // console.log(base64Qr);
-        console.log(asciiQR);
+        let socketController = new SocketController();
+        socketController.emit('base64Qr', base64Qr);
       },
       statusFind => {
         console.log(statusFind);
@@ -162,13 +161,6 @@ export class WhatsappService implements OnApplicationShutdown {
       this.log.log(`Hook '${hook}' was enabled to url: ${url}`);
     }
     this.log.log('Webhooks were configured.');
-
-    let clase = this;
-    // setInterval(function() {
-    //   clase.log.log('###################');
-    //   clase.log.log(clase.activeChats);
-    //   clase.log.log('###################');
-    // }, 3000);
   }
 
   private async callWebhook(data: Message, url) {
