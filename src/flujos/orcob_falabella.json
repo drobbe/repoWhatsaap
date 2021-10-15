@@ -61,5 +61,43 @@
         }
       ]
     }
+  ],
+	"userNotFoundForm": {
+    "indexProcess": 0,
+    "informations": [
+      {
+        "message": "Ingrese su nombre y apellidos",
+        "value": "",
+        "parrameter": "nombre"
+      },
+      {
+        "message": "Ingrese su numero de telefono o celular",
+        "value": "",
+        "parrameter": "telefono"
+      },
+      {
+        "message": "Ingrese su correo electronico",
+        "value": "",
+        "parrameter": "mail"
+      }
+    ]
+  },
+  "aditional": [
+    {
+      "index": 0,
+      "message": "\n ■ precncial https://www.sinaptica.io \n ■ online https://www.sinaptica.io"
+    },
+    {
+      "index": 1,
+      "message": "\n ■ cheque al dia \n ■ efectivo \n ■ tarjetas de credito \n ■ tarjetas de debito"
+    },
+    {
+      "index": 2,
+      "message": "\n ■ campañas churn me \n ■ campañas descuento castigo"
+    },
+    {
+      "index": 3,
+      "message": "\n para mas detalles ingresa a https://www.sinaptica.io"
+    }
   ]
 }

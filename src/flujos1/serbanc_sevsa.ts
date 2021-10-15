@@ -93,7 +93,7 @@ export = {
 			}
 		]
 	},
-	menuSerbanc: [
+	aditional: [
 		{
 			index: 0,
 			message: '\n ■ precncial https://www.sinaptica.io \n ■ online https://www.sinaptica.io'

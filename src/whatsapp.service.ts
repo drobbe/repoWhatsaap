@@ -67,20 +67,19 @@ export class WhatsappService implements OnApplicationShutdown {
   readonly files_lifetime: number;
   readonly VERIFY_URL: string;
   readonly optionAvailable = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-	readonly idEmpresa: number = 8;
+	readonly idEmpresa: number = 0;
 
   private chatBot: ChatBot;
   private menuBranch: Branch;
+	private eventEmmiter: string;
   private activeChats: ChatInMemory[] = [];
   private socket: any;
 
 	private apiSinaptica: any;
-	private userNotFound: any;
   constructor(
     @Inject('WHATSAPP') private whatsapp: Whatsapp,
     private config: WhatsappConfigService){
 
-		this.userNotFound = require('./flujos/serbanc_sevsa')
 		this.apiSinaptica = new ApiSinaptica();
     this.FILES_FOLDER = path.resolve(__dirname, '../tmp/whatsapp-files');
     this.clean_downloads();
@@ -88,7 +87,9 @@ export class WhatsappService implements OnApplicationShutdown {
     this.files_lifetime = this.config.files_lifetime * SECOND;
     this.VERIFY_URL = config.get('VERIFY_URL');
 
-    this.chatBot = require('./flujos/serbanc_sevsa');
+		this.idEmpresa = Number(config.get('USER'))
+		this.eventEmmiter = config.get('BOT');
+    this.chatBot = config.flow();
     this.menuBranch = this.chatBot.branchs.find(c => c.menu === true);
 		this.socket = io('wss://realtime.sinaptica.io', { autoConnect: true });
     //this.socket = io('ws://localhost:8089', { autoConnect: true });
@@ -101,6 +102,18 @@ export class WhatsappService implements OnApplicationShutdown {
       const idChatInMemory = this.activeChats.findIndex(c => (c.idChat = data.idChat));
 			this.sendMessageWhatsapp(this.activeChats[idChatInMemory].idSender, data.message)
     });
+
+		this.socket.on(this.eventEmmiter, (data: any) => {
+			console.log('------Websocket------');
+      console.log(data);
+      console.log('------Websocket------');
+      const idChatInMemory = this.activeChats.findIndex(c => (c.idChat = data.idChat));
+      this.activeChats[idChatInMemory].queueMesage++;
+      setTimeout(() => {
+        this._handleWebsocketSimpleMessage(idChatInMemory, data);
+        this.activeChats[idChatInMemory].queueMesage--;
+      }, (this.activeChats[idChatInMemory].queueMesage - 1) * 500);
+		})
 
     for(const hook of HOOKS) {
       const env_name = ENV_PREFIX + hook.toUpperCase();
@@ -188,10 +201,12 @@ export class WhatsappService implements OnApplicationShutdown {
         idChat: this.activeChats[chatIdInMemory].idChat,
         idUsername: this.activeChats[chatIdInMemory].idUsername,
         message: branch.event,
+				plataforma: 'whatsapp'
       }
-			const mesageWhatsapp = await whatsappMenu(sendWhatsapp);
-			if(!mesageWhatsapp.length)return
-			await this.onMessageWhatsap(chatIdInMemory, mesageWhatsapp)
+			//const mesageWhatsapp = await whatsappMenu(sendWhatsapp);
+			//if(!mesageWhatsapp.length)return
+			//await this.onMessageWhatsap(chatIdInMemory, mesageWhatsapp)
+			this.socket.emit(this.eventEmmiter, sendWhatsapp);
     } catch (error) {}
   }
 
@@ -320,20 +335,19 @@ export class WhatsappService implements OnApplicationShutdown {
   }
 
 	optionsMenu(message: string){
-		if(message=="Seleccione su lugar de pago:")	
-			return message += this.userNotFound.menuSerbanc.find(item => item.index===0).message;
+		if(message=="Seleccione su lugar de pago:")
+			return message += this.chatBot.aditional.find(item => item.index===0).message;
 		else if(message=="Seleccione forma de pago:")	
-			return message += this.userNotFound.menuSerbanc.find(item => item.index===1).message;
+			return message += this.chatBot.aditional.find(item => item.index===1).message;
 		else if(message=="ofertas vigentes:")	
-			return message += this.userNotFound.menuSerbanc.find(item => item.index===2).message;
+			return message += this.chatBot.aditional.find(item => item.index===2).message;
 		else if(message=="Agenda de llamada en proceso") 
-			return message += this.userNotFound.menuSerbanc.find(item => item.index===3).message;
+			return message += this.chatBot.aditional.find(item => item.index===3).message;
 		else return message;
 	}
 
 	private async sendMessageWhatsapp(number: string, message: string){
 		//if(number !== '51941453211@c.us') return;	
-		
 		return this.whatsapp.sendText(number, message)
     .then(result => {	return true})
 		.catch(error => {  return false});
@@ -370,7 +384,7 @@ export class WhatsappService implements OnApplicationShutdown {
 	private async activeFormUserNotFound(idChatInMemory: number, dataWebsocket: WebSocketMessage) {
 		this.activeChats[idChatInMemory].form.active = false
 		this.activeChats[idChatInMemory].userNotFound = true;
-    this.activeChats[idChatInMemory].userNotFoundForm = this.userNotFound.userNotFoundForm;
+    this.activeChats[idChatInMemory].userNotFoundForm = this.chatBot.userNotFoundForm;
 		const primerEnvio = this.activeChats[idChatInMemory].userNotFoundForm.informations[0].message
 		await this.sendMessageWhatsapp(this.activeChats[idChatInMemory].idSender, dataWebsocket.message)
 		await this.sendMessageWhatsapp(this.activeChats[idChatInMemory].idSender, primerEnvio)

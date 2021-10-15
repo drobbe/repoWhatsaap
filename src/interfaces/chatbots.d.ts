@@ -24,4 +24,20 @@ export interface ChatBot {
   branchs?: Branch[];
   type?: string;
   event?: string;
+	aditional?: [
+			{
+				index: number,
+				message: string,
+			}
+		],
+	userNotFoundForm?: {
+		indexProcess?: number,
+		informations?: [
+			{
+				message: string,
+				value: string,
+				parrameter: string,
+			}
+		]
+	}
 }

@@ -42,24 +42,15 @@ export class ApiSinaptica {
 	}
 
 	async asignedAsesor(idEmpresa: number, idUser: number, idChat: number){
-		console.log("+++++++++++ registrando +++++++++++")
-		console.log(idEmpresa)
-		console.log(idUser)
-		console.log(idChat)
-		console.log("+++++++++++ registrando +++++++++++")
 		return this.instance.post(`/asignedAsesor`, {
 			idEmpresa: idEmpresa,
 			idusername: idUser,
 			idchat: idChat,
 		})
 		.then(async function(response) {
-			console.log(response.data)
 			return response.data;
 		})
 		.catch(async function(error) {
-			console.log(":::::::::::. asigned error ::::::::::::")
-			console.log(error)
-			console.log(":::::::::::. asigned error ::::::::::::")
 			return { idAsesor: -1, message: "En estos momentos no hay asesor disponible, comuniquese mas tarde. Gracias" };
 		});
 	}

@@ -27,8 +27,8 @@ export class ChatInMemory {
     socket?: string;
   };
 	userNotFoundForm?: {
-		indexProcess: number;
-		informations: [
+		indexProcess?: number;
+		informations?: [
 			{
 				message: string,
 				value: string,
