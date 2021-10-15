@@ -294,8 +294,8 @@ export class WhatsappService implements OnApplicationShutdown {
       this.socket.emit(branch.socket, socketMsg);
       this.cleanActiveForm(chatIdInMemory);
     } else {
-      if (this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
-        return;
+      //if (this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
+      //return;
       await this.whatsapp
         .sendText(
           this.activeChats[chatIdInMemory].idSender,
@@ -395,8 +395,8 @@ export class WhatsappService implements OnApplicationShutdown {
         ? this.activeChats[idChatInMemory].form.questions[0].message
         : data.message;
 
-    if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
-      return;
+    //if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+    //  return;
     this.whatsapp
       .sendText(this.activeChats[idChatInMemory].idSender, msg)
       .then(result => {
@@ -431,8 +431,8 @@ export class WhatsappService implements OnApplicationShutdown {
       this.activeChats[chatIdInMemory].affirmation = false;
     }
     if (affirmation.destiny.showGoodbye) {
-      if (this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
-        return;
+      //if (this.activeChats[chatIdInMemory].idSender !== '51994290430@c.us')
+      //return;
       await this.whatsapp
         .sendText(
           this.activeChats[chatIdInMemory].idSender,
@@ -505,8 +505,8 @@ export class WhatsappService implements OnApplicationShutdown {
 
   async greetins(idChatInMemory: number) {
     for (const message of this.chatBot.greetings) {
-      if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
-        return;
+      //if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+      //  return;
       await this.whatsapp
         .sendText(this.activeChats[idChatInMemory].idSender, message)
         .then(result => {
@@ -525,8 +525,8 @@ export class WhatsappService implements OnApplicationShutdown {
     let i = 0;
     for (const branch of this.menuBranch.branchs) {
       if (branch.enabled === true) {
-        if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
-          return;
+        //if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+        //  return;
         await this.whatsapp
           .sendText(
             this.activeChats[idChatInMemory].idSender,
@@ -551,8 +551,8 @@ export class WhatsappService implements OnApplicationShutdown {
     const afirmationBranch = this.chatBot.affirmation;
     for (const branch of afirmationBranch) {
       if (branch.enabled === true) {
-        if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
-          return;
+        //if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us')
+        //return;
         await this.whatsapp
           .sendText(
             this.activeChats[idChatInMemory].idSender,
@@ -573,9 +573,9 @@ export class WhatsappService implements OnApplicationShutdown {
   }
 
   sendDefaultMesagge(idChatInMemory: number) {
-    if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us') {
-      return;
-    }
+    //if (this.activeChats[idChatInMemory].idSender !== '51994290430@c.us') {
+    //  return;
+    //}
     this.whatsapp
       .sendText(this.activeChats[idChatInMemory].idSender, this.chatBot.default)
       .then(result => {
