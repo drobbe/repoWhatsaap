@@ -1,3 +1,4 @@
+/*
 import { updateChatUser } from '../mapper/services';
 import { whatsapp } from 'src/flujos1/chats.whatsapp';
 
@@ -81,6 +82,7 @@ export async function whatsappMenu(request: any){
 			break;
 	}
 }
+*/
 
 /*
 export async function MenuFalabella(request: any){

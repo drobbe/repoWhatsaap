@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
-import { WhatsappConfigService } from './services/config.service';
+import { WhatsappConfigService } from './config.service';
 
 import mime = require('mime-types');
 import fs = require('fs');
@@ -18,7 +18,7 @@ import { Branch, ChatBot } from './interfaces/chatbots';
 import { ChatInMemory } from './interfaces/chats';
 
 import { saveUserNotFound, consultaRutUsername} from './helper/helper.whatsapp';
-import { whatsappMenu } from './helper/message.whatsap';
+//import { whatsappMenu } from './helper/message.whatsap';
 import { ApiSinaptica } from './services/api.sinaptica'
 import { WebSocketChat, WebSocketMessage } from './interfaces/webSocketMessage';
 
@@ -90,6 +90,9 @@ export class WhatsappService implements OnApplicationShutdown {
 		this.idEmpresa = Number(config.get('USER'))
 		this.eventEmmiter = config.get('BOT');
     this.chatBot = config.flow();
+		console.log("::::::::::::::::.. init ::::::::::::::")
+		console.log( this.chatBot.greetings)
+		console.log("::::::::::::::::.. init ::::::::::::::")
     this.menuBranch = this.chatBot.branchs.find(c => c.menu === true);
 		this.socket = io('wss://realtime.sinaptica.io', { autoConnect: true });
     //this.socket = io('ws://localhost:8089', { autoConnect: true });
