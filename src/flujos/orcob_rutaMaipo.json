@@ -27,24 +27,16 @@
       "id": 3,
       "menu": true,
       "branchs": [
+      
         {
           "id": 31,
-          "text": "Deseas Mayor informacion de tu deuda",
-          "event": "Deseas Mayor informacion de tu deuda",
-          "socket": "consulta_rutaMaipo",
-          "form": { "message": "consultar rut" },
-          "enabled": true,
-          "type": "form"
-        },
-        {
-          "id": 32,
           "text": "Pagar Deuda On line",
           "event": "Pagar Deuda On line",
           "enabled": true,
           "type": "message"
         },
         {
-          "id": 33,
+          "id": 32,
           "text": "Agendar compromiso de pago",
           "event": "Agendar compromiso de pago",
           "socket": "compromisoRutaMaipo",
@@ -53,7 +45,7 @@
           "type": "form"
         },
         {
-          "id": 34,
+          "id": 33,
           "text": "Conectarse con un asesor",
           "event": "conectarse con un asesor",
           "enabled": true,
