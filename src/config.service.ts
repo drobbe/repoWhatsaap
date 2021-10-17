@@ -41,7 +41,6 @@ export class WhatsappConfigService {
 
   flow() {
     const flow = require('../src/flujos/' + this.get('BOT') + '.json');
-    console.log('flow', flow);
     return flow;
   }
 

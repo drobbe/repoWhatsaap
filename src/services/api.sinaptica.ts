@@ -30,8 +30,8 @@ export class ApiSinaptica {
 		})
 	}
 
-	async verifyUsername(number: string){
-		return this.instance.get(`/verifi/telephone/${number}`)
+	async verifyUsername(number: string, idEmpresa: number){
+		return this.instance.get(`/verifi/telephone/${number}/${idEmpresa}`)
 		.then((response) =>{
 			if(response.data.length === 0) return false;
 			return response.data[0];

@@ -88,7 +88,7 @@ export class WhatsappService implements OnApplicationShutdown {
     this.VERIFY_URL = config.get('VERIFY_URL');
 
 		this.idEmpresa = Number(config.get('USER'))
-		this.eventEmmiter = config.get('BOT');
+		this.eventEmmiter = config.get('EVENTO');
     this.chatBot = config.flow();
 		console.log("::::::::::::::::.. init ::::::::::::::")
 		console.log(config.get('FLOW'))
@@ -210,6 +210,14 @@ export class WhatsappService implements OnApplicationShutdown {
 			//const mesageWhatsapp = await whatsappMenu(sendWhatsapp);
 			//if(!mesageWhatsapp.length)return
 			//await this.onMessageWhatsap(chatIdInMemory, mesageWhatsapp)
+			console.log("||||||||||||||||||||||||||||||||||||||||||||||||")
+			console.log("||||||||||||||||||||||||||||||||||||||||||||||||")
+			console.log(this.eventEmmiter)
+			console.log(sendWhatsapp)
+			console.log(this.activeChats)
+			//message, chatOnline, idChat, idUsername, plataforma
+			console.log("||||||||||||||||||||||||||||||||||||||||||||||||")
+			console.log("||||||||||||||||||||||||||||||||||||||||||||||||")
 			this.socket.emit(this.eventEmmiter, sendWhatsapp);
     } catch (error) {}
   }
@@ -302,7 +310,7 @@ export class WhatsappService implements OnApplicationShutdown {
       const index = this.activeChats.findIndex(a => (a.idSender = idSender));
       if(index !== -1)return index
 
-			let isRegister = await this.apiSinaptica.verifyUsername(formatPhone)
+			let isRegister = await this.apiSinaptica.verifyUsername(formatPhone, this.idEmpresa)
 			console.log("verificando")
 			console.log(isRegister)
 			console.log("verificando")

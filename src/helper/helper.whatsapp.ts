@@ -14,7 +14,7 @@ export async function consultaRutUsername(request: any){
 	const id = -1;
 	const currentTime = new Date().getHours();
 	const hello = currentTime>=6 &&currentTime<12? 'Hola buen día': currentTime>=12 &&currentTime<18? 'Hola buenas tardes': 'Hola buenas noches';
-	const messageNot = `Estimad@, no encontramos su Rut ${rutUser} en nuestros registros, registrese para que nuestro un asesor se comunique con ud`;
+	const messageNot = `Estimad@, no encontramos su Rut ${rutUser} en nuestros registros. \n\n Registrese para que nuestro un asesor se comunique con ud`;
 	const responseError = { id,	time,		updateUser: false,		message: messageNot}
 	
 	try {
@@ -40,7 +40,7 @@ export async function consultaRutUserOrcob(request: any){
 	const { idChat, idUser, rutUser, message } = request
 
 	const id = -1;
-	const messageNot = `Estimad@, no encontramos su Rut ${rutUser} en nuestros registros, registrese para que nuestro un asesor se comunique con ud`;
+	const messageNot = `Estimad@, no encontramos su Rut ${rutUser} en nuestros registros. \n\n Registrese  para que nuestro un asesor se comunique con ud`;
 	const responseError = { id,	time,		updateUser: false,		message: messageNot}
 	try {
 		await updateChatUser(idChat, { id: idUser, time, message })
