@@ -94,9 +94,9 @@ export class WhatsappService implements OnApplicationShutdown {
 		console.log(config.get('FLOW'))
 		console.log("::::::::::::::::.. init ::::::::::::::")
     this.menuBranch = this.chatBot.branchs.find(c => c.menu === true);
+		this.socket = io('wss://realtime.sinaptica.io', { autoConnect: true });
 		//this.socket = io('wss://realtime.sinaptica.io', { autoConnect: true });
-		//this.socket = io('wss://realtime.sinaptica.io', { autoConnect: true });
-    this.socket = io('ws://localhost:8089', { autoConnect: true });
+    //this.socket = io('ws://localhost:8089', { autoConnect: true });
     this.socket.auth = { id: 1000, username: 'whastsapp' };
 
     this.socket.on('whatsapp', (data: any) => {
