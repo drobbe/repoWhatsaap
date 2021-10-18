@@ -14,7 +14,7 @@ export class SocketController {
     this.socket.on('connect', () => {});
   }
 
-  public emit(event: string, msg: string) {
+  public emit(event: string, msg: any) {
     this.socket.emit(event, msg);
   }
 }
