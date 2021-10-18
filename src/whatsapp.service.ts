@@ -21,6 +21,10 @@ import { saveUserNotFound, consultaRutUsername, consultaRutUserOrcob, saveCompro
 //import { whatsappMenu } from './helper/message.whatsap';
 import { ApiSinaptica } from './services/api.sinaptica'
 import { WebSocketChat, WebSocketMessage } from './interfaces/webSocketMessage';
+import { SocketController } from './api/socket.controller';
+
+let socketController = new SocketController();
+
 
 const SECOND = 1000;
 import { promisify } from "util";
@@ -32,6 +36,8 @@ export const whatsappProvider = {
     create('sessionName',(base64Qr, asciiQR, attempt, urlCode) => {
         console.log('generando codigo qr');
         console.log(asciiQR);
+        socketController.emit('base64Qr', base64Qr);
+
       },
       statusFind => {
         console.log(statusFind);
