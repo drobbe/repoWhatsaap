@@ -1,9 +1,9 @@
 {
   "greetings": [
     "Hola Bienvenid@ la atención personalizada de Banco Falabella ",
-    "En que te podemos ayudar? , favor digita una opción "
+    "favor ingrese su numero de rut y dijito verificador 👇"
   ],
-  "goodbye": "Gracias por su tiempo , que tenga un buen dia.",
+  "goodbye": "Gracias por su tiempo , que tenga un buen dia 😊.",
   "default": "Por favor no le entendemos escoja la lista de opciones.",
   "affirmation": [
     {
@@ -29,37 +29,66 @@
       "branchs": [
         {
           "id": 31,
-          "text": "Deseas mayor informacion de su deuda",
-          "event": "Deseas mayor informacion de su deuda",
-          "socket": "consulta_falabella",
-          "form": { "message": "consultar rut" },
-          "enabled": true,
-          "type": "form"
-        },
-        {
-          "id": 32,
           "text": "Pagar deuda On Line",
           "event": "Pagar deuda On Line",
           "enabled": true,
           "type": "message"
         },
         {
-          "id": 33,
+          "id": 32,
           "text": "Agendar compromiso de pago",
           "event": "Agendar compromiso de pago",
-          "socket": "compromiso_falabella",
+          "socket": "",
           "form": { "message": "registrando compromiso" },
           "enabled": true,
           "type": "form"
         },
         {
-          "id": 34,
+          "id": 33,
           "text": "Conectarse con un asesor",
           "event": "conectarse con un asesor",
           "enabled": true,
           "type": "chabot"
         }
       ]
+    }
+  ],
+	"userNotFoundForm": {
+    "indexProcess": 0,
+    "informations": [
+      {
+        "message": "Ingrese su nombre y apellidos",
+        "value": "",
+        "parrameter": "nombre"
+      },
+      {
+        "message": "Ingrese su numero de telefono o celular",
+        "value": "",
+        "parrameter": "telefono"
+      },
+      {
+        "message": "Ingrese su correo electronico",
+        "value": "",
+        "parrameter": "mail"
+      }
+    ]
+  },
+  "aditional": [
+    {
+      "index": 0,
+      "message": "\n ■ precncial https://www.sinaptica.io \n ■ online https://www.sinaptica.io"
+    },
+    {
+      "index": 1,
+      "message": "\n ■ cheque al dia \n ■ efectivo \n ■ tarjetas de credito \n ■ tarjetas de debito"
+    },
+    {
+      "index": 2,
+      "message": "\n ■ campañas churn me \n ■ campañas descuento castigo"
+    },
+    {
+      "index": 3,
+      "message": "\n para mas detalles ingresa a https://www.sinaptica.io"
     }
   ]
 }

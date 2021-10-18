@@ -1,7 +1,7 @@
 {
   "greetings": [
-    "Hola Bienvenid@ la atención personalizada de Ruta del Maipo",
-    "favor ingrese su numero de rut y dijito verificador 👇"
+    "Hola Soy Kary,  estoy aquí para ayudarlo",
+    "favor ingrese su numero de rut y digito verificador"
   ],
   "goodbye": "Gracias por su tiempo , que tenga un buen dia 😊.",
   "default": "Por favor no le entendemos escoja la lista de opciones.",
@@ -27,25 +27,44 @@
       "id": 3,
       "menu": true,
       "branchs": [
-      
         {
           "id": 31,
-          "text": "Pagar Deuda On line",
-          "event": "Pagar Deuda On line",
+          "text": "lugares de pago",
+          "event": "lugares de pago",
+          "socket": "message",
+          "form": { "message": "lugares de pago" },
           "enabled": true,
           "type": "message"
         },
         {
           "id": 32,
-          "text": "Agendar compromiso de pago",
-          "event": "Agendar compromiso de pago",
-          "socket": "compromisoRutaMaipo",
-          "form": { "message": "registrando compromiso" },
+          "text": "formas de pago",
+          "event": "formas de pago",
+          "socket": "message",
+          "form": { "message": "formas de pago" },
           "enabled": true,
-          "type": "form"
+          "type": "message"
         },
         {
           "id": 33,
+          "text": "ofertas vigentes",
+          "event": "ofertas vigentes",
+          "socket": "message",
+          "form": { "message": "ofertas vigentes" },
+          "enabled": true,
+          "type": "message"
+        },
+        {
+          "id": 34,
+          "text": "agendar llamado",
+          "event": "agendar llamado",
+          "socket": "message",
+          "form": { "message": "agendar llamado" },
+          "enabled": true,
+          "type": "message"
+        },
+        {
+          "id": 35,
           "text": "Conectarse con un asesor",
           "event": "conectarse con un asesor",
           "enabled": true,
@@ -54,7 +73,7 @@
       ]
     }
   ],
-	"userNotFoundForm": {
+  "userNotFoundForm": {
     "indexProcess": 0,
     "informations": [
       {
