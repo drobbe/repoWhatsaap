@@ -1,4 +1,5 @@
 
+import { Console } from 'console';
 import { 
 	userRutExist, 
 	updateChatUser, 
@@ -10,6 +11,10 @@ const time = new Date().toLocaleString();
 
 export async function consultaRutUsername(request: any){
 
+
+	console.log("++++++++++  consulta rut ++++++++++++++")
+	console.log(request)
+	console.log("++++++++++  consulta rut ++++++++++++++")
 	const { idChat, idUser, rutUser, message } = request
 	const id = -1;
 	const currentTime = new Date().getHours();

@@ -16,7 +16,7 @@ export class ApiSinaptica {
 	async createUsername(idEmpresa: number, number: string){
 		return this.instance.post('/createChatUser', { 
 			idempresa: idEmpresa,  
-			message: [], 
+			message: [],
 			chatbot: 'serbanc cevsa',  
 			telefono: number,
 			plataforma: 'WHATSAPP'

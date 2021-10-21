@@ -1,7 +1,7 @@
 {
   "greetings": [
-    "Hola Bienvenid@ la atención personalizada de Ruta del Maipo",
-    "favor ingrese su numero de rut y dijito verificador 👇"
+    "Hola Bienvenid@ a la atención personalizada de Ruta del Maipo",
+    "En que te podemos ayudar? , favor digita una opción :"
   ],
   "goodbye": "Gracias por su tiempo , que tenga un buen dia 😊.",
   "default": "Por favor no le entendemos escoja la lista de opciones.",
@@ -27,16 +27,22 @@
       "id": 3,
       "menu": true,
       "branchs": [
-      
-        {
+				{
           "id": 31,
+          "text": "Deseas mayor informacion de su deuda",
+          "event": "Deseas mayor informacion de su deuda",
+          "enabled": true,
+          "type": "message"
+        },
+        {
+          "id": 32,
           "text": "Pagar Deuda On line",
           "event": "Pagar Deuda On line",
           "enabled": true,
           "type": "message"
         },
         {
-          "id": 32,
+          "id": 33,
           "text": "Agendar compromiso de pago",
           "event": "Agendar compromiso de pago",
           "socket": "compromisoRutaMaipo",
@@ -44,8 +50,17 @@
           "enabled": true,
           "type": "form"
         },
+				{
+          "id": 34,
+          "text": "No tengo deuda",
+          "event": "No tengo deuda",
+          "socket": "",
+          "form": { "message": "No tengo deuda " },
+          "enabled": true,
+          "type": "message"
+        },
         {
-          "id": 33,
+          "id": 35,
           "text": "Conectarse con un asesor",
           "event": "conectarse con un asesor",
           "enabled": true,

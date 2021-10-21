@@ -52,7 +52,7 @@ export class ChatInMemory {
     this.idAsesor = null;
 		this.userNotFound = false;
     this.form = {
-      active: true,
+      active: false,
 			activeQuestion: 0,
 			questions: [
 				{

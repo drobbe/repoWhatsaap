@@ -95,7 +95,6 @@ export class WhatsappService implements OnApplicationShutdown {
 		console.log("::::::::::::::::.. init ::::::::::::::")
     this.menuBranch = this.chatBot.branchs.find(c => c.menu === true);
 		this.socket = io('wss://realtime.sinaptica.io', { autoConnect: true });
-		//this.socket = io('wss://realtime.sinaptica.io', { autoConnect: true });
     //this.socket = io('ws://localhost:8089', { autoConnect: true });
     this.socket.auth = { id: 1000, username: 'whastsapp' };
 
@@ -150,7 +149,7 @@ export class WhatsappService implements OnApplicationShutdown {
 			console.log("+++++++++++++ general +++++++++++")
       if(this.activeChats[chatIdInMemory].greetins === true) {
         await this.greetins(chatIdInMemory);
-        return;
+				return await this.menu(chatIdInMemory);
       }
 
       if(this.activeChats[chatIdInMemory].asesorOnline === true) {
@@ -260,7 +259,10 @@ export class WhatsappService implements OnApplicationShutdown {
 			this.activeChats[chatIdInMemory].form.questions[positionActiveQuestion].value = message.body;
 			if(this.activeChats[chatIdInMemory].form.activeQuestion===this.activeChats[chatIdInMemory].form.questions.length - 1){
 				const branch = this.findBranchID(this.activeChats[chatIdInMemory].lastBranch, msg, this.chatBot.branchs);
-				if(branch == undefined){
+				console.log("========================= branch ===============================================")
+				console.log(branch)
+				console.log("========================== branch ==============================================")
+				if(branch.text == 'Deseas mayor informacion de su deuda'){
 					/** este caso regularmente es en primer momento cuando consulta el usuario */
 					const questions = this.activeChats[chatIdInMemory].form.questions[positionActiveQuestion];
 					let saveConsulta = [];
@@ -268,7 +270,7 @@ export class WhatsappService implements OnApplicationShutdown {
 						saveConsulta = await consultaRutUserOrcob({ idChat: this.activeChats[chatIdInMemory].idChat, idUser: this.activeChats[chatIdInMemory].idUsername,	rutUser: msg,	message: questions.message })
 					} else {//consulta solo para serbanc
 						saveConsulta = await consultaRutUsername({ idChat: this.activeChats[chatIdInMemory].idChat, idUser: this.activeChats[chatIdInMemory].idUsername,	rutUser: msg,	message: questions.message })
-					}	
+					}
 					this.cleanActiveForm(chatIdInMemory);
 					if(!saveConsulta.length) return;
 					await this.onMessageWhatsap(chatIdInMemory, saveConsulta)
@@ -284,15 +286,6 @@ export class WhatsappService implements OnApplicationShutdown {
 				});
 				this.activeChats[chatIdInMemory].lastBranch = branch.id;
 				//this.socket.emit(branch.socket, socketMsg);
-				console.log("========================================================================")
-				console.log("========================================================================")
-				console.log("========================================================================")
-				console.log("========================================================================")
-				console.log(socketMsg)
-				console.log("========================================================================")
-				console.log("========================================================================")
-				console.log("========================================================================")
-				console.log("========================================================================")
 				const compromiso = await saveCompromiso(socketMsg)
 				this.cleanActiveForm(chatIdInMemory);
 				if(!compromiso.length) return
@@ -323,8 +316,10 @@ export class WhatsappService implements OnApplicationShutdown {
   }
 
   private async  _handleWebsocketSimpleMessage(idChatInMemory: number, data: WebSocketMessage) {
-
-    let isMessageForm = false;
+		console.log("=============================== webhock =========================================")
+		console.log(data)
+		console.log("=============================== webhock =========================================")
+		let isMessageForm = false;
     if(data.formConsulta === true || data.formCompromiso === true) {
       this.activeForm(idChatInMemory, data);
       isMessageForm = true;
@@ -456,15 +451,15 @@ export class WhatsappService implements OnApplicationShutdown {
   }
 
   async menu(idChatInMemory: number){
-		if(this.activeChats[idChatInMemory].updateUsername === false){
-			this.resendGreeting(idChatInMemory)
-			return
-		}
+		//if(this.activeChats[idChatInMemory].updateUsername === false){
+		//	this.resendGreeting(idChatInMemory)
+		//	return
+		//}
 
     let i = 0;
     for(const branch of this.menuBranch.branchs) {
       if(branch.enabled === true) {
-				await this.sendMessageWhatsapp(this.activeChats[idChatInMemory].idSender, `*${this.optionAvailable[i]})* - ${branch.text}`);
+				await this.sendMessageWhatsapp(this.activeChats[idChatInMemory].idSender, `👉 *${this.optionAvailable[i]}* - ${branch.text}`);
         i++;
       }
     }
