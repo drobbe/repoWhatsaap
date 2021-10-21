@@ -11,10 +11,6 @@ const time = new Date().toLocaleString();
 
 export async function consultaRutUsername(request: any){
 
-
-	console.log("++++++++++  consulta rut ++++++++++++++")
-	console.log(request)
-	console.log("++++++++++  consulta rut ++++++++++++++")
 	const { idChat, idUser, rutUser, message } = request
 	const id = -1;
 	const currentTime = new Date().getHours();
@@ -84,8 +80,21 @@ export async function saveCompromiso(request: any){
 		const consultaRut = await userRutExist(rut)
 		if(consultaRut){
 		
-			await UserSaveCompromiso(Number(consultaRut['IdCampana']), rut, monto, fecha, tipoPago)
-			var response = { id, time, message: 'Estimad@, su compromiso fue registrado en nuestros registros' }
+			await UserSaveCompromiso(Number(consultaRut['IdCampana']), rut, monto, fecha, tipoPago)			
+			let messageEnd = '';
+			const tiendaotransferencia= tipoPago.toLowerCase().includes('transferencia') || tipoPago.toLowerCase().includes('electrónica');
+			if(tiendaotransferencia){
+				messageEnd = `Estimad@ Compromiso agendado. 
+				\n Nombre: ORCOB  Ltda.
+				\n Rut: 76.304.060-7.
+				\n Banco: 	Banco chile.
+				\n Correo: 	${consultaRut['mail_ejecutivo']}.
+				\n Numero cta: 	${consultaRut['cuenta_corriente']}.`;
+			} else {
+				messageEnd = `Estimad@ Compromiso agendado para el dia ${fecha} mediante ${tipoPago}`;
+			}
+
+			var response = { id, time, message: messageEnd }
 			await updateChatUser(idChat, response)
 			await updateChatUser(idChat, optional)
 			return [response, optional]
